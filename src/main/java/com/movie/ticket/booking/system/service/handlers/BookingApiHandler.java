@@ -33,4 +33,15 @@ public class BookingApiHandler {
         return new ResponseEntity<ResponseDto>(responseDto, HttpStatus.BAD_REQUEST);
 
     }
+
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ResponseDto> runtimeException(RuntimeException runtimeException){
+        return new ResponseEntity<ResponseDto>(
+                ResponseDto.builder()
+                        .statusCodeDescription(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
+                        .errorDescription(runtimeException.getMessage()).build(),
+                HttpStatus.INTERNAL_SERVER_ERROR
+        );
+    }
 }

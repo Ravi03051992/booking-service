@@ -8,12 +8,14 @@ import com.movie.ticket.booking.system.service.entities.BookingEntity;
 import com.movie.ticket.booking.system.service.enums.BookingStatus;
 import com.movie.ticket.booking.system.service.repositories.BookingRepository;
 import com.movie.ticket.booking.system.service.services.BookingService;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
+@Transactional
 public class BookingServiceImpl implements BookingService {
 
     @Autowired
@@ -38,12 +40,13 @@ public class BookingServiceImpl implements BookingService {
 
        this.bookingRepository.save(bookingEntity); // create booking with booking status as pending
        bookingDto.setBookingId(bookingEntity.getBookingId());
-       bookingDto.setBookingStatus(BookingStatus.PENDING);
+       bookingDto.setBookingStatus(bookingEntity.getBookingStatus());
 
 
 // call to payment service
 
-      String paymentResponse = paymentService.createBooking();
+  BookingDto bookingDtoPaymentResponse= paymentService.makePayment(bookingDto);
+  bookingEntity.setBookingStatus(bookingDtoPaymentResponse.getBookingStatus());
 
       return ResponseDto.builder()
               .bookingDto(BookingDto.builder()
@@ -53,7 +56,7 @@ public class BookingServiceImpl implements BookingService {
               .seatsSelected(bookingEntity.getSeatsSelected())
               .showDate(bookingEntity.getShowDate())
               .showTime(bookingEntity.getShowTime())
-              .bookingStatus(BookingStatus.CONFIRMED)
+              .bookingStatus(bookingDtoPaymentResponse.getBookingStatus())
               .bookingAmount(bookingEntity.getBookingAmount())
                .build())
               .build();
